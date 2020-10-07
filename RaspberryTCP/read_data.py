@@ -52,10 +52,7 @@ def Connect_MbTCP(ip,func,reg_addr,reg_nb):
         #print(regs_data)
         return regs_data
 var_alarm_up = True #initilize value
-def read_weather(data_weather):
-    
-    
-        
+
 def find_MaxMin(data):
     max_data=max(data)
     var_Compare=(max_data*5)/100
@@ -63,6 +60,7 @@ def find_MaxMin(data):
     for y in data:
         if y<max_data-var_Compare:
             print("Lost Current at")
+
 
 """
 #Blynk set up
@@ -97,10 +95,11 @@ while True:
         if len(data)>1:
             list_Buffer.append(data)
             count=count+1;
+            time.sleep(1)
         if count==5:
             count=0
-            count_len_Subbuff=len(list_Buffer[1]) # <------------------
-            count_len_Buff=len(list_Buffer)
+            count_len_Subbuff=len(list_Buffer[1]) # <------ dem so data trong mang 1 cua buffer
+            count_len_Buff=len(list_Buffer) # <-------------dem so data trong mang =5
             for a in range(int(count_len_Subbuff)):
                 for b in range(count_len_Buff):
                     list_Buffer_Start.append(list_Buffer[b][a])
@@ -113,7 +112,20 @@ while True:
             print(list_Buffer_Final)
             #print(count_len)
             list_Buffer=[]
-            list_Buffer_Final=[]
+        #find_Maxmin(list_Buffer_Final)
+            max_data=max(list_Buffer_Final)
+            var_Compare=(max_data*5)/100
+            print(var_Compare)
+            for y in data:
+                if y<max_data-var_Compare:
+                    b=data.index(y)
+                    print("Low Current at SCB No:  " + str(b))
+                    
+            
+            
+            
+        list_Buffer_Final=[]
+            
 
 def Alarm_thermal():
     if var_RH  > 80.0 and var_alarm_up == True: 
