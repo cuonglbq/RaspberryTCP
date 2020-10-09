@@ -17,6 +17,13 @@ list_Buffer=[]
 list_Buffer_Start=[]
 list_Buffer_Final=[]
 count = 0
+list_String_IVT1=[19,22,22,19,18,22,22,20,20,19,22,19,22,22,22]
+list_Data_F=[]
+flag_read_Current=True
+flag_read_Weather=False
+data_Weather=0
+keep_Alarm=False
+var_alarm_up = False #initilize value
 """
 ip_Device=["192.168.1.151","192.168.1.152","192.168.1.153","192.168.1.154","192.168.1.155","192.168.1.156",
            "192.168.1.157","192.168.1.158","192.168.1.159","192.168.1.160","192.168.1.161","192.168.1.162",
@@ -47,11 +54,18 @@ def Connect_MbTCP(ip,func,reg_addr,reg_nb):
     if c.is_open():
         init_read = True
     if init_read==True:
-        regs_data = c.read_float(reg_addr,reg_nb)
-        #find_MaxMin(regs_data)
-        #print(regs_data)
-        return regs_data
-var_alarm_up = True #initilize value
+        if func==3:
+            regs_data = c.read_float(reg_addr,reg_nb)
+            #find_MaxMin(regs_data)
+            #print(regs_data)
+            return regs_data
+        if func==4:
+            regs_data=c.read_input_registers(reg_addr,reg_nb)
+            return regs_data
+            c.close()
+        else:
+            print("PLS! choose FunctionCod")
+
 
 def find_MaxMin(data):
     max_data=max(data)
@@ -62,7 +76,7 @@ def find_MaxMin(data):
             print("Lost Current at")
 
 
-"""
+
 #Blynk set up
 BLYNK_AUTH = 'yJrIM13raUXVjmYPoGxIyd2LYdOSs0w3'
 blynk = blynklib.Blynk(BLYNK_AUTH)
@@ -75,13 +89,43 @@ def read_virtual_pin_handler(pin) :
 @blynk.handle_event('read V2')
 def read_virtual_pin_handler(pin) :
     blynk.virtual_write(pin, var_RH)
-"""
+
 
 ###########################################################
 # infinite loop that waits for event
 ###########################################################
-while True:
+def read_weather():
+    data=Connect_MbTCP("192.168.1.111",4,1,1)
+    return data
 
+def Alarm(value_Alarm):
+    
+    if value_Alarm == True and keep_Alarm==False:
+        blynk.notify('Alarm SET!')
+        blynk.email("cuonglbq@geccom.vn", "Sensor Temperature & Humidity", "https://drive.google.com/file/d/1SzKMVdSz59slXK4rYwqK5kk_zL_PKdxi/view?usp=sharing");
+        value_Alarm = False
+        keep_Alarm=True
+    if value_Alarm == False:
+        blynk.notify('Alarm CLEAR!')
+        keep_Alarm=False
+    
+
+
+while True:
+    blynk.run()
+    if flag_read_Weather == True:
+        data_Weather=read_weather()
+        if(data_Weather[0]>4000):
+            flag_read_Current = True
+            flag_read_Weather=False
+        else:
+            flag_read_Current = False
+            flag_read_Weather=True
+            print("Low Irradian"+str(data_Weather[0]))
+        time.sleep(1)
+            
+        
+        
 #    blynk.run()
 
 #    for x in ip_Device:
@@ -91,12 +135,13 @@ while True:
 #        print("***********************")
 #        time.sleep(5)
     
-        data=Connect_MbTCP("192.168.1.151",3,1,10)
+    if flag_read_Current == True:
+        data=Connect_MbTCP("192.168.1.151",3,1,14)
         if len(data)>1:
             list_Buffer.append(data)
             count=count+1;
             time.sleep(1)
-        if count==5:
+        if count==3:
             count=0
             count_len_Subbuff=len(list_Buffer[1]) # <------ dem so data trong mang 1 cua buffer
             count_len_Buff=len(list_Buffer) # <-------------dem so data trong mang =5
@@ -106,26 +151,34 @@ while True:
                 
                 list_Buffer_Final.append(max(list_Buffer_Start))
                 list_Buffer_Start=[]
-            #print(count_len_Subbuff)
-            #print(count_len_Buff)
-            
-            print(list_Buffer_Final)
-            #print(count_len)
+           
             list_Buffer=[]
-        #find_Maxmin(list_Buffer_Final)
-            max_data=max(list_Buffer_Final)
+            
+            for u in range(len(list_Buffer_Final)):
+                d=list_Buffer_Final[u]/list_String_IVT1[u]
+                list_Data_F.append(d)
+                d=0
+            print(list_Data_F)
+            max_data=max(list_Data_F)
             var_Compare=(max_data*5)/100
-            print(var_Compare)
+            print(str(var_Compare) + " - " + str(max_data))
             for y in data:
                 if y<max_data-var_Compare:
                     b=data.index(y)
                     print("Low Current at SCB No:  " + str(b))
-                    
-            
-            
-            
+                    var_alarm_up == True
+                    Alarm(var_alarm_up)
+                                 
+                else:
+                    var_alarm_up == False
+                    Alarm(var_alarm_up)
+            flag_read_Weather=True
+                
+                  
+        list_Data_F=[] 
+        
         list_Buffer_Final=[]
-            
+        
 
 def Alarm_thermal():
     if var_RH  > 80.0 and var_alarm_up == True: 
@@ -138,3 +191,4 @@ def Alarm_thermal():
         var_alarm_up = True
 
 
+        #var_alarm_up = True
