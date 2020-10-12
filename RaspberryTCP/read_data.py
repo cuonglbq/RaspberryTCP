@@ -81,15 +81,85 @@ def find_MaxMin(data):
 BLYNK_AUTH = 'yJrIM13raUXVjmYPoGxIyd2LYdOSs0w3'
 blynk = blynklib.Blynk(BLYNK_AUTH)
 
+#Weather data
+@blynk.handle_event('read V0')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, data_Weather[0]/10)
+
+#SCB1 normalized current 
 @blynk.handle_event('read V1')
 def read_virtual_pin_handler(pin) :
-    blynk.virtual_write(pin, var_temp)
+    blynk.virtual_write(pin, list_Data_F[0])
 
-
+#SCB2 normalized current 
 @blynk.handle_event('read V2')
 def read_virtual_pin_handler(pin) :
-    blynk.virtual_write(pin, var_RH)
+    blynk.virtual_write(pin, list_Data_F[1])
 
+#SCB3 normalized current 
+@blynk.handle_event('read V3')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[2])
+
+#SCB4 normalized current 
+@blynk.handle_event('read V4')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[3])
+
+#SCB5 normalized current 
+@blynk.handle_event('read V5')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[4])
+
+#SCB6 normalized current 
+@blynk.handle_event('read V6')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[5])
+
+#SCB7 normalized current 
+@blynk.handle_event('read V7')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[6])
+
+#SCB8 normalized current 
+@blynk.handle_event('read V8')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[7])
+
+#SCB9 normalized current 
+@blynk.handle_event('read V9')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[8])
+
+#SCB10 normalized current 
+@blynk.handle_event('read V10')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[9])
+
+#SCB11 normalized current 
+@blynk.handle_event('read V11')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[10])
+
+#SCB12 normalized current 
+@blynk.handle_event('read V12')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[11])
+
+#SCB13 normalized current 
+@blynk.handle_event('read V13')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[12])
+
+#SCB14 normalized current 
+@blynk.handle_event('read V14')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[13])
+
+#SCB15 normalized current 
+@blynk.handle_event('read V15')
+def read_virtual_pin_handler(pin) :
+    blynk.virtual_write(pin, list_Data_F[14])
 
 ###########################################################
 # infinite loop that waits for event
@@ -101,8 +171,10 @@ def read_weather():
 def Alarm(value_Alarm):
     
     if value_Alarm == True and keep_Alarm==False:
-        blynk.notify('Alarm SET!')
-        blynk.email("cuonglbq@geccom.vn", "Sensor Temperature & Humidity", "https://drive.google.com/file/d/1SzKMVdSz59slXK4rYwqK5kk_zL_PKdxi/view?usp=sharing");
+        blynk.notify(alarm_msg)
+        blynk.email("cuonglbq@geccom.vn", alarm_msg , "https://shorturl.at/hDTY2")
+        #blynk.notify('Alarm SET!')
+        #blynk.email("cuonglbq@geccom.vn", "Sensor Temperature & Humidity", "https://drive.google.com/file/d/1SzKMVdSz59slXK4rYwqK5kk_zL_PKdxi/view?usp=sharing");
         value_Alarm = False
         keep_Alarm=True
     if value_Alarm == False:
@@ -115,7 +187,9 @@ while True:
     blynk.run()
     if flag_read_Weather == True:
         data_Weather=read_weather()
-        if(data_Weather[0]>4000):
+           
+        #read SCB current only if irradiance is more than 400W/m2   
+        if((data_Weather[0]/10)>400):
             flag_read_Current = True
             flag_read_Weather=False
         else:
@@ -164,8 +238,10 @@ while True:
             print(str(var_Compare) + " - " + str(max_data))
             for y in list_Data_F:
                 if y<max_data-var_Compare:
-                    b=list_Data_F.index(y)+1
+                    b=list_Data_F.index(y)+1 //shift from index 0 to index 1 - SCB index starts from 1
                     print("Low Current at SCB No:  " + str(b))
+                    
+                    alarm_msg = "Low Current at SCB No:  " + str(b) //alarm msg
                     var_alarm_up == True
                     Alarm(var_alarm_up)
                                  
