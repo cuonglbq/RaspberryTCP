@@ -69,7 +69,7 @@ def Connect_MbTCP(ip,func,reg_addr,reg_nb):
 
 def find_MaxMin(data):
     max_data=max(data)
-    var_Compare=(max_data*5)/100
+    var_Compare=(max_data*10)/100
     print(var_Compare)
     for y in data:
         if y<max_data-var_Compare:
@@ -141,7 +141,7 @@ while True:
             list_Buffer.append(data)
             count=count+1;
             time.sleep(1)
-        if count==3:
+        if count==5:
             count=0
             count_len_Subbuff=len(list_Buffer[1]) # <------ dem so data trong mang 1 cua buffer
             count_len_Buff=len(list_Buffer) # <-------------dem so data trong mang =5
@@ -162,9 +162,9 @@ while True:
             max_data=max(list_Data_F)
             var_Compare=(max_data*5)/100
             print(str(var_Compare) + " - " + str(max_data))
-            for y in data:
+            for y in list_Data_F:
                 if y<max_data-var_Compare:
-                    b=data.index(y)
+                    b=list_Data_F.index(y)+1
                     print("Low Current at SCB No:  " + str(b))
                     var_alarm_up == True
                     Alarm(var_alarm_up)
